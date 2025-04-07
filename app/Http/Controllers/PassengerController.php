@@ -7,18 +7,13 @@ use App\Models\RequestSoli;
 use App\Models\State;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PassengerController extends Controller
 {
     public function index(){
-        $requests = RequestSoli::with([
-            'NeighborhoodOrigin',
-            'NeighborhoodDestination',
-            'state',
-            'driver',
-            'passenger'
-        ])->paginate(10);
-        
+        $passengerId = Auth::user()->uid;
+        $requests = RequestSoli::where('passenger_id', $passengerId)->get();
         $states = State::all();
         $neightboorhoods = Neighborhood::all();
         $drivers = User::where('role_id', 1)->get();
@@ -47,10 +42,10 @@ class PassengerController extends Controller
             'driver_id' => $data['driver_id'],
             'origin' => $data['origin'],
             'destination' => $data['destination'],
-            'state' => $data['state'],
+            'state_id' => $data['state'],
         ]);
 
-        return redirect()->route('pasajeros.index')->with('success', 'Solicitud creada exitosamente.');
+        return redirect()->route('pasajeros.index');
     }
 
     public function show(string $id){
@@ -70,7 +65,6 @@ class PassengerController extends Controller
         $solipasaje = RequestSoli::findOrFail($id);
         $solipasaje->delete();
     
-        return redirect()->route('pasajeros.index')->with('success', 'Solicitud eliminada exitosamente.');
+        return redirect()->route('pasajeros.index');
     }
-    
 }

@@ -60,7 +60,7 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="mx-4 mt-4 mb-4">{{ $requests->links() }}</div>
+                                    {{-- <div class="mx-4 mt-4 mb-4">{{ $requests->links() }}</div> --}}
                                 </div>
                             </div>
                         </div>

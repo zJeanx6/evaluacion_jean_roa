@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,41 +13,34 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    public function create(): View
-    {
-        return view('auth.login');
-    }
+    public function create(): View{ return view('auth.login'); }
 
     public function store(LoginRequest $request)
     {
         $credentials = $request->only('uid', 'password');
-        $user = \App\Models\User::where('uid', $request->uid)->first();
+        $user = User::where('uid', $request->uid)->first();
 
         if (Auth::attempt($credentials)) {
 
             $request->session()->regenerate();
+            
             if ($user->role_id == 1) {
                 $request->session()->put('pending_user_id', $user->uid);
-                Auth::logout(); 
+                Auth::logout();
                 return redirect()->route('conductor.code');
             }
+
             if ($user->role_id == 2) {
                 return redirect()->route('pasajeros.index');
             }
 
-            return redirect()->intended(RouteServiceProvider::HOME);
         }
-
-        return back()->withErrors([
-            'uid' => 'Las credenciales no coinciden con nuestros registros.',
-        ]);
+        return back()->withErrors(['uid' => 'Las credenciales no coinciden con nuestros registros.',]);
     }
 
-    public function destroy(Request $request): RedirectResponse
-    {
-        Auth::guard('web')->logout(); //Aplica una accion sobre el usuario que tiene sesion iniciada
-        $request->session()->invalidate(); // Invalida la sesion actual
-        $request->session()->regenerateToken(); // Genera nuevo token CSRF por seguridad
+    public function destroy(Request $request){
+        Auth::logout();
+        $request->session()->invalidate();
         return redirect('/');
     }
 }

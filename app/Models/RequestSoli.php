@@ -15,7 +15,7 @@ class RequestSoli extends Model
         'driver_id', 
         'origin', 
         'destination', 
-        'state'
+        'state_id'
     ];
 
     // Relaciones
@@ -41,7 +41,7 @@ class RequestSoli extends Model
 
     public function state()
     {
-        return $this->belongsTo(State::class, 'state', 'id');
+        return $this->belongsTo(State::class, 'state_id', 'id');
     }
     
 }
