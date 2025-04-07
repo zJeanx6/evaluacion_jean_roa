@@ -12,37 +12,41 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
     public function create(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request)
     {
-        $request->authenticate();
+        $credentials = $request->only('uid', 'password');
+        $user = \App\Models\User::where('uid', $request->uid)->first();
 
-        $request->session()->regenerate();
+        if (Auth::attempt($credentials)) {
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+            $request->session()->regenerate();
+            if ($user->role_id == 1) {
+                $request->session()->put('pending_user_id', $user->uid);
+                Auth::logout(); 
+                return redirect()->route('conductor.code');
+            }
+            if ($user->role_id == 2) {
+                return redirect()->route('pasajeros.index');
+            }
+
+            return redirect()->intended(RouteServiceProvider::HOME);
+        }
+
+        return back()->withErrors([
+            'uid' => 'Las credenciales no coinciden con nuestros registros.',
+        ]);
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-
-        $request->session()->regenerateToken();
-
+        Auth::guard('web')->logout(); //Aplica una accion sobre el usuario que tiene sesion iniciada
+        $request->session()->invalidate(); // Invalida la sesion actual
+        $request->session()->regenerateToken(); // Genera nuevo token CSRF por seguridad
         return redirect('/');
     }
 }
